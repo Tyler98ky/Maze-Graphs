@@ -1,6 +1,7 @@
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Stack;
@@ -16,12 +17,108 @@ public class MazeGridPanel extends JPanel{
 
 	// extra credit
 	public void genDFSMaze() {
-		boolean[][] visited;
+		boolean[][] visited = new boolean[this.rows][this.cols];
+		int count = 1;
 		Stack<Cell> stack  = new Stack<Cell>();
 		Cell start = maze[0][0];
+		start.setBackground(Color.GREEN);
+		visited[start.row][start.row] = true;
+
+		Cell current = start;
+		while(count < this.rows * this.cols){
+			if (hasUnvisitedNeighbors(visited, current)){
+				stack.push(current);
+				switch (pickRandomNeighbor(visited, current)){
+					case "UP":
+						current.northWall = false;
+						current = getUp(current);
+						current.southWall = false;
+						break;
+
+					case "LEFT":
+						current.westWall = false;
+						current = getLeft(current);
+						current.eastWall = false;
+						break;
+
+					case "DOWN":
+						current.southWall = false;
+						current = getDown(current);
+						current.northWall = false;
+						break;
+
+					case "RIGHT":
+						current.eastWall = false;
+						current = getRight(current);
+						current.westWall = false;
+						break;
+				}
+				visited[current.row][current.col] = true;
+				count++;
+			}
+			else if(!stack.isEmpty()){
+				current = stack.pop();
+			}
+		}
 		stack.push(start);
 	}
 
+	public Cell getUp(Cell e){
+		return maze[e.row-1][e.col];
+	}
+
+	public Cell getLeft(Cell e){
+		return maze[e.row][e.col-1];
+	}
+
+	public Cell getDown(Cell e){
+		return maze[e.row+1][e.col];
+	}
+
+	public Cell getRight(Cell e){
+		return maze[e.row][e.col+1];
+	}
+
+	public boolean hasUnvisitedNeighbors(boolean[][] table, Cell target){
+		int r = target.row;
+		int c = target.col;
+
+		if(r >= 1 && table[r-1][c] == false){ //if there's room above AND it hasnt been visited
+			return true;
+		}
+		if(c >= 1 && table[r][c-1] == false){ // if theres room left AND it hasnt been visited
+			return true;
+		}
+		if(r < this.rows-1 && table[r+1][c] == false){ //if theres room below AND it hasnt been visited
+			return true;
+		}
+		if(c < this.cols-1 && table[r][c+1] == false){ //if theres room right AND it hasnt been visited
+			return true;
+		}
+		return false;
+	}
+
+	public String pickRandomNeighbor(boolean[][] table, Cell target){
+		int r = target.row;
+		int c = target.col;
+		ArrayList<String> choices = new ArrayList<>();
+
+		if(r >= 1 && table[r-1][c] == false){ //if there's room above AND it hasnt been visited
+			choices.add("UP");
+		}
+		if(c >= 1 && table[r][c-1] == false){ // if theres room left AND it hasnt been visited
+			choices.add("LEFT");
+		}
+		if(r < this.rows-1 && table[r+1][c] == false){ //if theres room below AND it hasnt been visited
+			choices.add("DOWN");
+		}
+		if(c < this.cols-1 && table[r][c+1] == false){ //if theres room right AND it hasnt been visited
+			choices.add("RIGHT");
+		}
+
+		int index = (int) (Math.random() * choices.size());
+		return choices.get(index);
+	}
 	//homework
 	public void solveMaze() {
 		Stack<Cell> stack  = new Stack<Cell>();
@@ -175,8 +272,8 @@ public class MazeGridPanel extends JPanel{
 
 		}
 
-
-		this.genNWMaze();
+		this.genDFSMaze();
+//		this.genNWMaze();
 		this.solveMaze();
 //		this.solveMazeQueue();
 	}
